@@ -10,7 +10,7 @@ interface Props {
 }
 
 
-export const Sidebar = ({countries, onSelect}:Props) => {
+export const SideBar = ({countries, onSelect}:Props) => {
     return (
     <Drawer open
         variant="permanent" 
@@ -24,7 +24,7 @@ export const Sidebar = ({countries, onSelect}:Props) => {
             </ListItemButton> ))
         }
 
-        
+
       </List>
     </Drawer>
 )
