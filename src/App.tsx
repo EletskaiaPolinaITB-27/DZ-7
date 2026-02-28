@@ -1,35 +1,92 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useState, useEffect } from "react"
+import { Sidebar } from "./SideBar/SideBar";
+import { BASE_URL } from "./contacts";
+import type { ICountryShort, ICountry } from "./types"
+import Box from '@mui/material/Box';
+import Typography from '@mui/material/Typography';
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [countriesList, setcountriesList] = useState<ICountryShort[]>([])
+  const [selectedCountry, setSelectedCountry] = useState<ICountry | null>(null)
+
+  useEffect(()=>{
+    const getCountries = async() => {
+      try{
+        const response = await fetch(`${BASE_URL}/all?fields=alpha3Code,name`)
+        if (!response.ok) {
+          throw new Error
+        }
+        const data:ICountryShort[] = await response.json()
+        setcountriesList(data)
+      }catch(e) {
+        console.log(e)
+      }
+    }
+    getCountries()
+  },[])
+
+
+
+  const getCountryByCode = async (code:string) => {
+    try {
+      const response = await fetch(`${BASE_URL}/alpha/${code}`)
+      if (!response.ok) {
+        throw new Error
+      }
+      const data: ICountry = await response.json()
+      setSelectedCountry(data)
+    } catch (e) {
+      console.log(e)
+    }
+  }  
+
+
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <Box sx={{ display: 'flex' }}>
+      <Sidebar countries={countriesList} onSelect={getCountryByCode}/>
+
+      <Box component="main" sx={{ flexGrow: 2, p: 3, ml: '300px' }}>
+        {selectedCountry ? (
+          <Box>
+            <Typography variant="h3" gutterBottom>{selectedCountry.name}</Typography>
+            <img src={selectedCountry!.flag} alt="flag" style={{ width: '150px', borderRadius: '6px' }} />
+            <Typography variant="body1" sx={{ mt: 2 }}>
+              capital: {selectedCountry.capital}
+            </Typography>
+            <Typography variant="body1">
+                population: {selectedCountry.population.toLocaleString()}
+            </Typography>
+
+            <Typography 
+              variant="h4" sx={{mt: 3}}>
+                border:
+            </Typography>
+
+            {selectedCountry.borders ? (
+              <Box component="ul">
+                {selectedCountry.borders.map(border => (
+                  <Typography component="li" key={border}>
+                    {border}
+                  </Typography>
+                ))}
+              </Box>
+            ) : (
+              <Typography>there are no land borders</Typography>
+            )}
+          </Box>
+        ) : (
+          <Typography variant="h4">
+            choose a country from the list on the left
+          </Typography>
+        )}
+      </Box>
+    </Box>
+  )         
 }
+
+
+
+
 
 export default App
